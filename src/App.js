@@ -1,4 +1,7 @@
 import React, { Component } from 'react';
+// import { Pie } from 'react-chartjs';
+var Pie = require('react-chartjs').Pie;
+
 import './styles.css';
 const users = require('./users.json');
 
@@ -6,7 +9,7 @@ class App extends Component {
   constructor(props) {
     super(props);
 
-    const catalogs = [
+    this.catalogs = [
       {
         id: 0,
         name: 'Bosch: Catálogo Rotating Machines',
@@ -78,15 +81,66 @@ class App extends Component {
     ];
   }
   componentDidMount = () => {
-    console.log(users);
-
-    // const catalogs = users.reduce((acc, user) => {
-
-    // }, )
+    // console.log(users);
+    this.cats = this.catalogs.map(cat => {
+      let amount = 0;
+      for (const user in users) {
+        if (users.hasOwnProperty(user)) {
+          const userCatalogs = users[user].catalogs.split(',').map(catalog => Number(catalog));
+          amount = userCatalogs.includes(cat.id) ? amount + 1 : amount;
+        }
+      }
+      return { ...cat, amount };
+    });
+    console.log(this.cats);
   };
 
   render() {
-    return <div>{/* <h1>My React App!</h1> */}</div>;
+    const chartOptions = {
+      // Boolean - If we should show the scale at all
+
+      showScale: true,
+      // Boolean - Whether to show a dot for each point
+      pointDot: true,
+      showLines: false,
+      title: {
+        display: true,
+        text: 'Chart.js Line Chart',
+      },
+      legend: {
+        display: true,
+        labels: {
+          boxWidth: 50,
+          fontSize: 10,
+          fontColor: '#bbb',
+          padding: 5,
+        },
+      },
+    };
+    const chartData = {
+      labels: ['1', '2', '3', '4'],
+      datasets: [
+        {
+          label: 'Current lag',
+          fill: false,
+          lineTension: 0.1,
+          backgroundColor: 'rgba(75,192,192,0.4)',
+          borderColor: 'rgba(75,192,192,1)',
+          borderCapStyle: 'butt',
+          borderDashOffset: 0.0,
+          borderJoinStyle: 'miter',
+          data: [50, 35, 60, 67],
+        },
+      ],
+    };
+
+    return (
+      <div>
+        <Pie data={chartData || []} options={chartOptions} />
+
+        {/* <h1>My React App!</h1> */}
+      </div>
+    );
   }
 }
 
