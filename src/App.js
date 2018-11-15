@@ -1,17 +1,9 @@
 import React, { Component } from 'react';
-// import { Pie } from 'react-chartjs';
-// var Pie = require('react-chartjs').Pie;
 import { VictoryPie } from 'victory';
 
 import './styles.css';
 const users = require('./users.json');
-
-const data = [
-  { quarter: 1, earnings: 13000, label: 'asdf' },
-  { quarter: 2, earnings: 16500, label: 'asdf' },
-  { quarter: 3, earnings: 14250, label: 'asdf' },
-  { quarter: 4, earnings: 19000, label: 'asdf' },
-];
+const localities = require('./arg-localities.json');
 
 class App extends Component {
   constructor(props) {
@@ -88,40 +80,114 @@ class App extends Component {
       },
     ];
 
+    this.businessTypes = [
+      'Casa de Repuestos',
+      'Distribuidor',
+      'Taller',
+      'Centro de Baterías',
+      'Talleres Red Bosch',
+      'Lubricentro',
+      'Otros',
+    ];
+
     this.catalogsPieData = [];
+    this.provincePieData = [];
+    this.businessPieData = [];
   }
   componentDidMount = () => {
-    // console.log(users);
+    // TODO: refactor using .reduce()
+    // Catalogs data
     let totalSent = 0;
-    this.catalogsPieData = this.catalogs.map(cat => {
-      let amount = 0;
-      for (const user in users) {
-        if (users.hasOwnProperty(user)) {
-          const userCatalogs = users[user].catalogs.split(',').map(catalog => Number(catalog));
-          totalSent = userCatalogs.length + totalSent;
-          amount = userCatalogs.includes(cat.id) ? amount + 1 : amount;
+    this.catalogsPieData = this.catalogs
+      .map(cat => {
+        let amount = 0;
+        for (const user in users) {
+          if (users.hasOwnProperty(user)) {
+            const userCatalogs = users[user].catalogs.split(',').map(catalog => Number(catalog));
+            amount = userCatalogs.includes(cat.id) ? amount + 1 : amount;
+          }
         }
-      }
-      return { ...cat, amount };
-    });
+        totalSent = amount + totalSent;
+        return { ...cat, amount };
+      })
+      .map(c => {
+        const percent = Math.round((100 * c.amount) / totalSent);
+        return { ...c, x: `${c.id} | ${percent}%`, y: percent };
+      });
 
-    this.catalogsPieData = this.catalogsPieData.map(c => {
-      return { x: c.id, y: totalSent / (c.amount * 100) };
-    });
+    // Province data
+    let provinceTotalSends = 0;
+    this.provincePieData = localities
+      .map(loc => {
+        const amount = users.filter(user => user.province === loc.province).length;
+        provinceTotalSends = amount + provinceTotalSends;
+        return { province: loc.province, amount };
+      })
+      .map(loc => {
+        return { ...loc, percent: Math.round((100 * loc.amount) / provinceTotalSends) };
+      });
+
+    // Business data
+    let businessTotalSends = 0;
+    this.businessPieData = this.businessTypes
+      .map(business => {
+        const amount = users.filter(user => user.business_type === business).length;
+        businessTotalSends = amount + businessTotalSends;
+        return { business, amount };
+      })
+      .map(business => {
+        return { ...business, percent: Math.round((100 * business.amount) / businessTotalSends) };
+      });
+
     console.log(this.catalogsPieData);
-    console.log(totalSent);
+    console.log(this.provincePieData);
+    console.log(this.businessPieData);
+
+    this.forceUpdate();
   };
 
   render() {
     return (
       <div className="container">
-        <div className="catalogsWrapper">
-          <VictoryPie
-            colorScale="qualitative"
-            padAngle={3}
-            innerRadius={100}
-            data={[{ x: 'asdf', y: 100 }]}
-          />
+        <div>
+          <div className="catalogsWrapper">
+            <h1>Catalogos</h1>
+            <VictoryPie
+              colorScale="qualitative"
+              padAngle={3}
+              innerRadius={100}
+              data={this.catalogsPieData}
+            />
+          </div>
+          <div>
+            <ul>
+              {this.catalogsPieData.map(cat => (
+                <li>
+                  <span>{`${cat.id}: ${cat.name} | total: ${cat.amount}`}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+        </div>
+        <div>
+          <div className="catalogsWrapper">
+            <h1>Provincias</h1>
+            <VictoryPie
+              colorScale="qualitative"
+              padAngle={3}
+              innerRadius={100}
+              data={this.provincePieData}
+            />
+          </div>
+          <div>
+            <ul>
+              {this.provincePieData.map(prov => (
+                <li>
+                  <span>{`${prov.province} | enviados: ${prov.amount} | ${prov.percent}%`}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
         </div>
       </div>
     );
