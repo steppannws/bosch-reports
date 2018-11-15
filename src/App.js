@@ -1,9 +1,17 @@
 import React, { Component } from 'react';
 // import { Pie } from 'react-chartjs';
-var Pie = require('react-chartjs').Pie;
+// var Pie = require('react-chartjs').Pie;
+import { VictoryPie } from 'victory';
 
 import './styles.css';
 const users = require('./users.json');
+
+const data = [
+  { quarter: 1, earnings: 13000, label: 'asdf' },
+  { quarter: 2, earnings: 16500, label: 'asdf' },
+  { quarter: 3, earnings: 14250, label: 'asdf' },
+  { quarter: 4, earnings: 19000, label: 'asdf' },
+];
 
 class App extends Component {
   constructor(props) {
@@ -79,66 +87,42 @@ class App extends Component {
         name: 'Bosch: Catálogo Baterías',
       },
     ];
+
+    this.catalogsPieData = [];
   }
   componentDidMount = () => {
     // console.log(users);
-    this.cats = this.catalogs.map(cat => {
+    let totalSent = 0;
+    this.catalogsPieData = this.catalogs.map(cat => {
       let amount = 0;
       for (const user in users) {
         if (users.hasOwnProperty(user)) {
           const userCatalogs = users[user].catalogs.split(',').map(catalog => Number(catalog));
+          totalSent = userCatalogs.length + totalSent;
           amount = userCatalogs.includes(cat.id) ? amount + 1 : amount;
         }
       }
       return { ...cat, amount };
     });
-    console.log(this.cats);
+
+    this.catalogsPieData = this.catalogsPieData.map(c => {
+      return { x: c.id, y: totalSent / (c.amount * 100) };
+    });
+    console.log(this.catalogsPieData);
+    console.log(totalSent);
   };
 
   render() {
-    const chartOptions = {
-      // Boolean - If we should show the scale at all
-
-      showScale: true,
-      // Boolean - Whether to show a dot for each point
-      pointDot: true,
-      showLines: false,
-      title: {
-        display: true,
-        text: 'Chart.js Line Chart',
-      },
-      legend: {
-        display: true,
-        labels: {
-          boxWidth: 50,
-          fontSize: 10,
-          fontColor: '#bbb',
-          padding: 5,
-        },
-      },
-    };
-    const chartData = {
-      labels: ['1', '2', '3', '4'],
-      datasets: [
-        {
-          label: 'Current lag',
-          fill: false,
-          lineTension: 0.1,
-          backgroundColor: 'rgba(75,192,192,0.4)',
-          borderColor: 'rgba(75,192,192,1)',
-          borderCapStyle: 'butt',
-          borderDashOffset: 0.0,
-          borderJoinStyle: 'miter',
-          data: [50, 35, 60, 67],
-        },
-      ],
-    };
-
     return (
-      <div>
-        <Pie data={chartData || []} options={chartOptions} />
-
-        {/* <h1>My React App!</h1> */}
+      <div className="container">
+        <div className="catalogsWrapper">
+          <VictoryPie
+            colorScale="qualitative"
+            padAngle={3}
+            innerRadius={100}
+            data={[{ x: 'asdf', y: 100 }]}
+          />
+        </div>
       </div>
     );
   }

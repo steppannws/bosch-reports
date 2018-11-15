@@ -1,3 +1,11 @@
+.container {
+  /* background-color: black; */
+}
+
+.catalogsWrapper {
+  width: 500px;
+}
+
 h1 {
   color: #27aedb;
   text-align: center;
